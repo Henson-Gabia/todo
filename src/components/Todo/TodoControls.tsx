@@ -1,7 +1,7 @@
 import type { Sort } from '../../types/todo'
 import { SORT_LABELS } from '../../types/todo'
 
-const SORTS: Sort[] = ['created', 'due_date', 'priority']
+const SORTS: Sort[] = ['created', 'due_date', 'priority', 'manual']
 
 interface TodoControlsProps {
   sort: Sort
@@ -23,7 +23,7 @@ export function TodoControls({
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div className="flex items-center gap-1.5">
-        <span className="text-xs text-gray-500 font-medium">정렬</span>
+        <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">정렬</span>
         <div className="flex gap-1">
           {SORTS.map(s => (
             <button
@@ -31,8 +31,8 @@ export function TodoControls({
               onClick={() => onSortChange(s)}
               className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                 sort === s
-                  ? 'bg-gray-700 text-white'
-                  : 'bg-white border border-gray-300 text-gray-600 hover:border-gray-400'
+                  ? 'bg-gray-700 dark:bg-gray-200 text-white dark:text-gray-900'
+                  : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-gray-400'
               }`}
             >
               {SORT_LABELS[s]}
@@ -46,7 +46,7 @@ export function TodoControls({
           <div
             onClick={() => onHideCompletedChange(!hideCompleted)}
             className={`relative w-8 h-4 rounded-full transition-colors ${
-              hideCompleted ? 'bg-blue-500' : 'bg-gray-300'
+              hideCompleted ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
             }`}
           >
             <div
@@ -55,13 +55,13 @@ export function TodoControls({
               }`}
             />
           </div>
-          <span className="text-xs text-gray-600">완료 숨김</span>
+          <span className="text-xs text-gray-600 dark:text-gray-400">완료 숨김</span>
         </label>
 
         {completedCount > 0 && (
           <button
             onClick={onDeleteCompleted}
-            className="text-xs text-red-500 hover:text-red-700 border border-red-200 hover:border-red-400 px-2.5 py-1 rounded-full transition-colors"
+            className="text-xs text-red-500 hover:text-red-700 border border-red-200 dark:border-red-800 hover:border-red-400 px-2.5 py-1 rounded-full transition-colors"
           >
             완료 삭제 ({completedCount})
           </button>

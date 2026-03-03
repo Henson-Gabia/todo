@@ -17,12 +17,7 @@ export function TodoInput({ onAdd }: TodoInputProps) {
 
   const handleSubmit = () => {
     if (!content.trim()) return
-    onAdd({
-      content: content.trim(),
-      category,
-      priority,
-      due_date: dueDate || null,
-    })
+    onAdd({ content: content.trim(), category, priority, due_date: dueDate || null })
     setContent('')
     setDueDate('')
   }
@@ -31,8 +26,12 @@ export function TodoInput({ onAdd }: TodoInputProps) {
     if (e.key === 'Enter') handleSubmit()
   }
 
+  const btnBase = 'px-2 py-1 rounded-md text-xs font-medium transition-colors'
+  const btnActive = 'bg-blue-600 text-white'
+  const btnInactive = 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3">
       <div className="flex gap-2">
         <input
           type="text"
@@ -40,7 +39,7 @@ export function TodoInput({ onAdd }: TodoInputProps) {
           onChange={e => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="할일을 입력하세요..."
-          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <button
           onClick={handleSubmit}
@@ -52,18 +51,10 @@ export function TodoInput({ onAdd }: TodoInputProps) {
 
       <div className="flex flex-wrap gap-3">
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-gray-500 font-medium">카테고리</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">카테고리</span>
           <div className="flex gap-1">
             {CATEGORIES.map(c => (
-              <button
-                key={c}
-                onClick={() => setCategory(c)}
-                className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${
-                  category === c
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
+              <button key={c} onClick={() => setCategory(c)} className={`${btnBase} ${category === c ? btnActive : btnInactive}`}>
                 {CATEGORY_LABELS[c]}
               </button>
             ))}
@@ -71,18 +62,10 @@ export function TodoInput({ onAdd }: TodoInputProps) {
         </div>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-gray-500 font-medium">중요도</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">중요도</span>
           <div className="flex gap-1">
             {PRIORITIES.map(p => (
-              <button
-                key={p}
-                onClick={() => setPriority(p)}
-                className={`px-2 py-1 rounded-md text-xs font-medium transition-colors ${
-                  priority === p
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                }`}
-              >
+              <button key={p} onClick={() => setPriority(p)} className={`${btnBase} ${priority === p ? btnActive : btnInactive}`}>
                 {PRIORITY_EMOJI[p]} {PRIORITY_LABELS[p]}
               </button>
             ))}
@@ -90,12 +73,12 @@ export function TodoInput({ onAdd }: TodoInputProps) {
         </div>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-gray-500 font-medium">마감일</span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">마감일</span>
           <input
             type="date"
             value={dueDate}
             onChange={e => setDueDate(e.target.value)}
-            className="border border-gray-300 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 text-xs bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>

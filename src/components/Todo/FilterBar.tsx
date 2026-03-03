@@ -18,7 +18,7 @@ export function FilterBar({ current, onChange }: FilterBarProps) {
           className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
             current === f
               ? 'bg-blue-600 text-white'
-              : 'bg-white text-gray-600 border border-gray-300 hover:border-blue-400 hover:text-blue-600'
+              : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:text-blue-600'
           }`}
         >
           {FILTER_LABELS[f]}

@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import type { Todo, Category, Priority } from '../../types/todo'
 import {
   CATEGORY_LABELS,
@@ -11,6 +13,7 @@ import { getDDayInfo } from '../../hooks/useTodos'
 
 interface TodoItemProps {
   todo: Todo
+  isDraggable: boolean
   onToggle: (id: string, completed: boolean) => void
   onUpdate: (id: string, updates: Partial<Pick<Todo, 'content' | 'category' | 'priority' | 'due_date'>>) => void
   onDelete: (id: string) => void
@@ -19,12 +22,20 @@ interface TodoItemProps {
 const CATEGORIES: Category[] = ['personal', 'work', 'shopping', 'other']
 const PRIORITIES: Priority[] = ['high', 'medium', 'low']
 
-export function TodoItem({ todo, onToggle, onUpdate, onDelete }: TodoItemProps) {
+export function TodoItem({ todo, isDraggable, onToggle, onUpdate, onDelete }: TodoItemProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [editContent, setEditContent] = useState(todo.content)
   const [editCategory, setEditCategory] = useState<Category>(todo.category)
   const [editPriority, setEditPriority] = useState<Priority>(todo.priority)
   const [editDueDate, setEditDueDate] = useState(todo.due_date ?? '')
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: todo.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
 
   const dday = getDDayInfo(todo.due_date)
 
@@ -47,71 +58,57 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }: TodoItemProps) 
     setIsEditing(false)
   }
 
+  const btnBase = 'px-2 py-0.5 rounded-md text-xs font-medium transition-colors'
+  const btnActive = 'bg-blue-600 text-white'
+  const btnInactive = 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+
   if (isEditing) {
     return (
-      <div className={`bg-white rounded-xl border-2 border-blue-400 border-l-4 ${PRIORITY_BORDER[editPriority]} px-4 py-3 space-y-3`}>
+      <div className={`bg-white dark:bg-gray-800 rounded-xl border-2 border-blue-400 border-l-4 ${PRIORITY_BORDER[editPriority]} px-4 py-3 space-y-3`}>
         <input
           type="text"
           value={editContent}
           onChange={e => setEditContent(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') handleCancel() }}
           autoFocus
-          className="w-full text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <div className="flex flex-wrap gap-3">
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-500 font-medium">카테고리</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">카테고리</span>
             <div className="flex gap-1">
               {CATEGORIES.map(c => (
-                <button
-                  key={c}
-                  onClick={() => setEditCategory(c)}
-                  className={`px-2 py-0.5 rounded-md text-xs font-medium transition-colors ${
-                    editCategory === c ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
+                <button key={c} onClick={() => setEditCategory(c)} className={`${btnBase} ${editCategory === c ? btnActive : btnInactive}`}>
                   {CATEGORY_LABELS[c]}
                 </button>
               ))}
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-500 font-medium">중요도</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">중요도</span>
             <div className="flex gap-1">
               {PRIORITIES.map(p => (
-                <button
-                  key={p}
-                  onClick={() => setEditPriority(p)}
-                  className={`px-2 py-0.5 rounded-md text-xs font-medium transition-colors ${
-                    editPriority === p ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
+                <button key={p} onClick={() => setEditPriority(p)} className={`${btnBase} ${editPriority === p ? btnActive : btnInactive}`}>
                   {PRIORITY_EMOJI[p]} {PRIORITY_LABELS[p]}
                 </button>
               ))}
             </div>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-500 font-medium">마감일</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">마감일</span>
             <input
               type="date"
               value={editDueDate}
               onChange={e => setEditDueDate(e.target.value)}
-              className="border border-gray-300 rounded-md px-2 py-0.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 dark:border-gray-600 rounded-md px-2 py-0.5 text-xs bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
         </div>
         <div className="flex gap-2 justify-end">
-          <button
-            onClick={handleCancel}
-            className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
-          >
+          <button onClick={handleCancel} className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
             취소
           </button>
-          <button
-            onClick={handleSave}
-            className="text-xs px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-          >
+          <button onClick={handleSave} className="text-xs px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors">
             저장
           </button>
         </div>
@@ -121,10 +118,22 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }: TodoItemProps) 
 
   return (
     <div
-      className={`bg-white rounded-xl border border-gray-200 border-l-4 ${PRIORITY_BORDER[todo.priority]} px-4 py-3 flex items-start gap-3 group transition-opacity ${
+      ref={setNodeRef}
+      style={style}
+      className={`bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 border-l-4 ${PRIORITY_BORDER[todo.priority]} px-4 py-3 flex items-start gap-3 group transition-opacity ${
         todo.completed ? 'opacity-60' : ''
       }`}
     >
+      {isDraggable && (
+        <span
+          {...attributes}
+          {...listeners}
+          className="text-gray-300 dark:text-gray-600 cursor-grab active:cursor-grabbing mt-0.5 flex-shrink-0 select-none"
+        >
+          ⠿
+        </span>
+      )}
+
       <input
         type="checkbox"
         checked={todo.completed}
@@ -133,14 +142,14 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }: TodoItemProps) 
       />
 
       <div className="flex-1 min-w-0">
-        <p className={`text-sm text-gray-800 ${todo.completed ? 'line-through text-gray-400' : ''}`}>
+        <p className={`text-sm text-gray-800 dark:text-gray-100 ${todo.completed ? 'line-through text-gray-400 dark:text-gray-500' : ''}`}>
           {todo.content}
         </p>
         <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
           <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${CATEGORY_COLORS[todo.category]}`}>
             {CATEGORY_LABELS[todo.category]}
           </span>
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-gray-500 dark:text-gray-400">
             {PRIORITY_EMOJI[todo.priority]} {PRIORITY_LABELS[todo.priority]}
           </span>
           {dday && (
@@ -161,7 +170,7 @@ export function TodoItem({ todo, onToggle, onUpdate, onDelete }: TodoItemProps) 
         </button>
         <button
           onClick={() => onDelete(todo.id)}
-          className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none"
+          className="text-gray-300 dark:text-gray-600 hover:text-red-500 transition-colors text-lg leading-none"
           aria-label="삭제"
         >
           ×

@@ -14,6 +14,8 @@ Supabase를 통해 데이터를 저장하고, Vercel로 배포합니다.
 | 데이터베이스 | Supabase (PostgreSQL) |
 | 인증 | Supabase Auth (이메일/비밀번호) |
 | 날짜 처리 | date-fns |
+| 차트 | Recharts |
+| 드래그 앤 드롭 | @dnd-kit |
 | 배포 | Vercel (GitHub 연동 자동 배포) |
 
 ---
@@ -23,7 +25,9 @@ Supabase를 통해 데이터를 저장하고, Vercel로 배포합니다.
 ### 할일 관리
 - **추가**: 내용 입력 후 Enter 또는 추가 버튼 클릭
 - **완료 체크**: 체크박스 클릭으로 완료/미완료 전환
+- **수정**: 카드에 마우스 올리면 ✏️ 버튼 → 인라인 편집 (Enter 저장 / Esc 취소)
 - **삭제**: × 버튼으로 항목 삭제
+- **완료 일괄삭제**: 완료된 항목 한 번에 삭제
 
 ### 카테고리
 개인 / 업무 / 쇼핑 / 기타로 분류하며 색상 배지로 구분합니다.
@@ -55,12 +59,45 @@ Supabase를 통해 데이터를 저장하고, Vercel로 배포합니다.
 | 1~2일 남음 | D-1, D-2 | 주황 |
 | 3일 이상 | D-N | 회색 |
 
-### 필터
+### 필터 & 정렬
 | 버튼 | 설명 |
 |------|------|
 | 전체 | 모든 할일 표시 |
 | 오늘 마감 | 오늘이 마감인 항목만 표시 |
 | 개인 / 업무 / 쇼핑 / 기타 | 카테고리별 필터 |
+
+| 정렬 | 설명 |
+|------|------|
+| 최신순 | 등록 날짜 기준 최신 항목 우선 |
+| 마감일순 | 가까운 마감일 우선 |
+| 중요도순 | 높음 → 보통 → 낮음 순 |
+| 직접정렬 | 드래그 앤 드롭으로 순서 변경 |
+
+### 검색
+- 상단 검색바에서 할일 내용 실시간 검색
+
+### 완료 카운터
+- 헤더에 `완료수/전체수` 진행률 바 표시
+
+### 다크모드 🌙
+- 헤더 🌙 버튼으로 토글
+- 설정이 로컬스토리지에 자동 저장
+- 시스템 다크모드 감지
+
+### 통계 대시보드 📊
+- 헤더 📊 버튼으로 열기
+- 전체 / 완료 / 완료율 / 기한초과 요약
+- 카테고리별 파이 차트
+- 중요도별 완료 현황 바 차트
+
+### 마감 알림 🔔
+- 헤더 🔔 버튼으로 브라우저 알림 권한 허용
+- D-Day 오늘 마감 / D-1 내일 마감 자동 알림
+
+### 드래그 앤 드롭
+- 정렬에서 `직접정렬` 선택 시 활성화
+- ⠿ 핸들을 드래그하여 순서 변경
+- 변경된 순서가 DB에 자동 저장
 
 ---
 
@@ -85,6 +122,7 @@ create table todos (
   category text check (category in ('personal','work','shopping','other')) not null,
   priority text check (priority in ('high','medium','low')) not null,
   due_date date,
+  position integer,
   created_at timestamptz default now()
 );
 
@@ -94,6 +132,11 @@ create policy "users can manage own todos"
   on todos for all
   using (auth.uid() = user_id);
 ```
+
+> 기존 테이블이 있다면 position 컬럼만 추가:
+> ```sql
+> alter table todos add column if not exists position integer;
+> ```
 
 ### 3. 환경변수 설정
 
@@ -133,15 +176,21 @@ src/
 │   ├── Auth/
 │   │   └── AuthForm.tsx       # 로그인/회원가입 폼
 │   ├── Layout/
-│   │   └── Header.tsx         # 헤더 (로그아웃 버튼)
+│   │   └── Header.tsx         # 헤더 (다크모드, 통계, 알림, 로그아웃)
+│   ├── Stats/
+│   │   └── StatsModal.tsx     # 통계 모달 (Recharts)
 │   └── Todo/
 │       ├── FilterBar.tsx      # 필터 버튼 바
+│       ├── SearchBar.tsx      # 검색 입력창
+│       ├── TodoControls.tsx   # 정렬, 완료숨김, 완료삭제
 │       ├── TodoInput.tsx      # 할일 입력 폼
-│       ├── TodoItem.tsx       # 할일 카드
-│       └── TodoList.tsx       # 할일 목록
+│       ├── TodoItem.tsx       # 할일 카드 (수정, DnD 핸들)
+│       └── TodoList.tsx       # 할일 목록 (DnD Context)
 ├── hooks/
 │   ├── useAuth.ts             # 인증 상태 관리
-│   └── useTodos.ts            # 할일 CRUD + D-Day 계산
+│   ├── useDarkMode.ts         # 다크모드 토글 + localStorage
+│   ├── useNotifications.ts    # 브라우저 알림
+│   └── useTodos.ts            # 할일 CRUD + 검색 + 정렬 + 드래그순서
 ├── lib/
 │   └── supabase.ts            # Supabase 클라이언트
 └── types/

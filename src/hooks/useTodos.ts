@@ -9,6 +9,7 @@ export function useTodos(userId: string) {
   const [filter, setFilter] = useState<Filter>('all')
   const [sort, setSort] = useState<Sort>('created')
   const [hideCompleted, setHideCompleted] = useState(false)
+  const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -30,7 +31,7 @@ export function useTodos(userId: string) {
   const addTodo = async (newTodo: NewTodo) => {
     const { data, error } = await supabase
       .from('todos')
-      .insert([{ ...newTodo, user_id: userId, completed: false }])
+      .insert([{ ...newTodo, user_id: userId, completed: false, position: null }])
       .select()
       .single()
 
@@ -44,9 +45,7 @@ export function useTodos(userId: string) {
       .eq('id', id)
 
     if (!error) {
-      setTodos(prev =>
-        prev.map(t => t.id === id ? { ...t, completed: !completed } : t)
-      )
+      setTodos(prev => prev.map(t => t.id === id ? { ...t, completed: !completed } : t))
     }
   }
 
@@ -69,17 +68,35 @@ export function useTodos(userId: string) {
     if (!error) setTodos(prev => prev.filter(t => !t.completed))
   }
 
+  const reorderTodos = async (reordered: Todo[]) => {
+    setTodos(prev => {
+      const ids = reordered.map(t => t.id)
+      const rest = prev.filter(t => !ids.includes(t.id))
+      return [...reordered.map((t, i) => ({ ...t, position: i })), ...rest]
+    })
+    for (let i = 0; i < reordered.length; i++) {
+      await supabase.from('todos').update({ position: i }).eq('id', reordered[i].id)
+    }
+  }
+
   const completedCount = todos.filter(t => t.completed).length
   const totalCount = todos.length
 
   const filteredAndSorted = todos
     .filter(todo => {
       if (hideCompleted && todo.completed) return false
+      if (search && !todo.content.toLowerCase().includes(search.toLowerCase())) return false
       if (filter === 'all') return true
       if (filter === 'today') return todo.due_date ? isToday(new Date(todo.due_date)) : false
       return todo.category === (filter as Category)
     })
     .sort((a, b) => {
+      if (sort === 'manual') {
+        if (a.position !== null && b.position !== null) return a.position - b.position
+        if (a.position !== null) return -1
+        if (b.position !== null) return 1
+        return b.created_at.localeCompare(a.created_at)
+      }
       if (sort === 'priority') {
         return PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]
       }
@@ -89,18 +106,16 @@ export function useTodos(userId: string) {
         if (!b.due_date) return -1
         return a.due_date.localeCompare(b.due_date)
       }
-      // created: 최신순 (기본)
       return b.created_at.localeCompare(a.created_at)
     })
 
   return {
     todos: filteredAndSorted,
-    filter,
-    setFilter,
-    sort,
-    setSort,
-    hideCompleted,
-    setHideCompleted,
+    allTodos: todos,
+    filter, setFilter,
+    sort, setSort,
+    hideCompleted, setHideCompleted,
+    search, setSearch,
     loading,
     completedCount,
     totalCount,
@@ -109,6 +124,7 @@ export function useTodos(userId: string) {
     updateTodo,
     deleteTodo,
     deleteCompleted,
+    reorderTodos,
   }
 }
 

@@ -1,12 +1,13 @@
 export type Category = 'personal' | 'work' | 'shopping' | 'other'
 export type Priority = 'high' | 'medium' | 'low'
 export type Filter = 'all' | 'today' | Category
-export type Sort = 'created' | 'due_date' | 'priority'
+export type Sort = 'created' | 'due_date' | 'priority' | 'manual'
 
 export const SORT_LABELS: Record<Sort, string> = {
   created: '최신순',
   due_date: '마감일순',
   priority: '중요도순',
+  manual: '직접정렬',
 }
 
 export const PRIORITY_ORDER: Record<Priority, number> = {
@@ -23,6 +24,7 @@ export interface Todo {
   category: Category
   priority: Priority
   due_date: string | null
+  position: number | null
   created_at: string
 }
 
