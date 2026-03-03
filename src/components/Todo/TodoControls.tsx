@@ -22,9 +22,9 @@ export function TodoControls({
 }: TodoControlsProps) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <div className="flex items-center gap-1.5">
-        <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">정렬</span>
-        <div className="flex gap-1">
+      <div className="flex items-center gap-1.5 min-w-0">
+        <span className="text-xs text-gray-500 dark:text-gray-400 font-medium flex-shrink-0">정렬</span>
+        <div className="flex gap-1 overflow-x-auto scrollbar-none pb-0.5">
           {SORTS.map(s => (
             <button
               key={s}

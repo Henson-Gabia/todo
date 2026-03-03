@@ -65,17 +65,17 @@ export function TodoItem({ todo, isDraggable, isOwner, onToggle, onUpdate, onDel
         <input type="text" value={editContent} onChange={e => setEditContent(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') handleCancel() }}
           autoFocus className="w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col gap-2">
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">카테고리</span>
-            <div className="flex gap-1">{CATEGORIES.map(c => <button key={c} onClick={() => setEditCategory(c)} className={`${btnBase} ${editCategory === c ? btnActive : btnInactive}`}>{CATEGORY_LABELS[c]}</button>)}</div>
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium w-12 flex-shrink-0">카테고리</span>
+            <div className="flex flex-wrap gap-1">{CATEGORIES.map(c => <button key={c} onClick={() => setEditCategory(c)} className={`${btnBase} ${editCategory === c ? btnActive : btnInactive}`}>{CATEGORY_LABELS[c]}</button>)}</div>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">중요도</span>
-            <div className="flex gap-1">{PRIORITIES.map(p => <button key={p} onClick={() => setEditPriority(p)} className={`${btnBase} ${editPriority === p ? btnActive : btnInactive}`}>{PRIORITY_EMOJI[p]} {PRIORITY_LABELS[p]}</button>)}</div>
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium w-12 flex-shrink-0">중요도</span>
+            <div className="flex flex-wrap gap-1">{PRIORITIES.map(p => <button key={p} onClick={() => setEditPriority(p)} className={`${btnBase} ${editPriority === p ? btnActive : btnInactive}`}>{PRIORITY_EMOJI[p]} {PRIORITY_LABELS[p]}</button>)}</div>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">마감일</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium w-12 flex-shrink-0">마감일</span>
             <input type="date" value={editDueDate} onChange={e => setEditDueDate(e.target.value)} className="border border-gray-300 dark:border-gray-600 rounded-md px-2 py-0.5 text-xs bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
         </div>
@@ -117,7 +117,7 @@ export function TodoItem({ todo, isDraggable, isOwner, onToggle, onUpdate, onDel
               ))}
             </div>
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-1 flex-shrink-0 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             <button onClick={() => setShowSubtasks(s => !s)} className={`text-xs p-0.5 transition-colors ${showSubtasks ? 'text-blue-500' : 'text-gray-400 hover:text-blue-500'}`} title="하위 할일">☰</button>
             {isOwner && <button onClick={() => setIsEditing(true)} className="text-gray-400 hover:text-blue-500 transition-colors text-sm p-0.5" title="수정">✏️</button>}
             {isOwner && <button onClick={() => setShowShare(true)} className="text-gray-400 hover:text-green-500 transition-colors text-sm p-0.5" title="공유">🔗</button>}
