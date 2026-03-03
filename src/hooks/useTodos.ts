@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { format, isToday } from 'date-fns'
 import { supabase } from '../lib/supabase'
-import type { Todo, NewTodo, Filter, Category } from '../types/todo'
+import type { Todo, NewTodo, Filter, Sort, Category } from '../types/todo'
+import { PRIORITY_ORDER } from '../types/todo'
 
 export function useTodos(userId: string) {
   const [todos, setTodos] = useState<Todo[]>([])
   const [filter, setFilter] = useState<Filter>('all')
+  const [sort, setSort] = useState<Sort>('created')
+  const [hideCompleted, setHideCompleted] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -47,27 +50,65 @@ export function useTodos(userId: string) {
     }
   }
 
+  const updateTodo = async (id: string, updates: Partial<Pick<Todo, 'content' | 'category' | 'priority' | 'due_date'>>) => {
+    const { error } = await supabase.from('todos').update(updates).eq('id', id)
+    if (!error) {
+      setTodos(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t))
+    }
+  }
+
   const deleteTodo = async (id: string) => {
     const { error } = await supabase.from('todos').delete().eq('id', id)
     if (!error) setTodos(prev => prev.filter(t => t.id !== id))
   }
 
-  const filteredTodos = todos.filter(todo => {
-    if (filter === 'all') return true
-    if (filter === 'today') {
-      return todo.due_date ? isToday(new Date(todo.due_date)) : false
-    }
-    return todo.category === (filter as Category)
-  })
+  const deleteCompleted = async () => {
+    const completedIds = todos.filter(t => t.completed).map(t => t.id)
+    if (completedIds.length === 0) return
+    const { error } = await supabase.from('todos').delete().in('id', completedIds)
+    if (!error) setTodos(prev => prev.filter(t => !t.completed))
+  }
+
+  const completedCount = todos.filter(t => t.completed).length
+  const totalCount = todos.length
+
+  const filteredAndSorted = todos
+    .filter(todo => {
+      if (hideCompleted && todo.completed) return false
+      if (filter === 'all') return true
+      if (filter === 'today') return todo.due_date ? isToday(new Date(todo.due_date)) : false
+      return todo.category === (filter as Category)
+    })
+    .sort((a, b) => {
+      if (sort === 'priority') {
+        return PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]
+      }
+      if (sort === 'due_date') {
+        if (!a.due_date && !b.due_date) return 0
+        if (!a.due_date) return 1
+        if (!b.due_date) return -1
+        return a.due_date.localeCompare(b.due_date)
+      }
+      // created: 최신순 (기본)
+      return b.created_at.localeCompare(a.created_at)
+    })
 
   return {
-    todos: filteredTodos,
+    todos: filteredAndSorted,
     filter,
     setFilter,
+    sort,
+    setSort,
+    hideCompleted,
+    setHideCompleted,
     loading,
+    completedCount,
+    totalCount,
     addTodo,
     toggleTodo,
+    updateTodo,
     deleteTodo,
+    deleteCompleted,
   }
 }
 

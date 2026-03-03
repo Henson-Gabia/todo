@@ -1,4 +1,5 @@
-import type { Todo } from '../../types/todo'
+import { useState } from 'react'
+import type { Todo, Category, Priority } from '../../types/todo'
 import {
   CATEGORY_LABELS,
   CATEGORY_COLORS,
@@ -11,11 +12,112 @@ import { getDDayInfo } from '../../hooks/useTodos'
 interface TodoItemProps {
   todo: Todo
   onToggle: (id: string, completed: boolean) => void
+  onUpdate: (id: string, updates: Partial<Pick<Todo, 'content' | 'category' | 'priority' | 'due_date'>>) => void
   onDelete: (id: string) => void
 }
 
-export function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
+const CATEGORIES: Category[] = ['personal', 'work', 'shopping', 'other']
+const PRIORITIES: Priority[] = ['high', 'medium', 'low']
+
+export function TodoItem({ todo, onToggle, onUpdate, onDelete }: TodoItemProps) {
+  const [isEditing, setIsEditing] = useState(false)
+  const [editContent, setEditContent] = useState(todo.content)
+  const [editCategory, setEditCategory] = useState<Category>(todo.category)
+  const [editPriority, setEditPriority] = useState<Priority>(todo.priority)
+  const [editDueDate, setEditDueDate] = useState(todo.due_date ?? '')
+
   const dday = getDDayInfo(todo.due_date)
+
+  const handleSave = () => {
+    if (!editContent.trim()) return
+    onUpdate(todo.id, {
+      content: editContent.trim(),
+      category: editCategory,
+      priority: editPriority,
+      due_date: editDueDate || null,
+    })
+    setIsEditing(false)
+  }
+
+  const handleCancel = () => {
+    setEditContent(todo.content)
+    setEditCategory(todo.category)
+    setEditPriority(todo.priority)
+    setEditDueDate(todo.due_date ?? '')
+    setIsEditing(false)
+  }
+
+  if (isEditing) {
+    return (
+      <div className={`bg-white rounded-xl border-2 border-blue-400 border-l-4 ${PRIORITY_BORDER[editPriority]} px-4 py-3 space-y-3`}>
+        <input
+          type="text"
+          value={editContent}
+          onChange={e => setEditContent(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') handleCancel() }}
+          autoFocus
+          className="w-full text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <div className="flex flex-wrap gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-500 font-medium">카테고리</span>
+            <div className="flex gap-1">
+              {CATEGORIES.map(c => (
+                <button
+                  key={c}
+                  onClick={() => setEditCategory(c)}
+                  className={`px-2 py-0.5 rounded-md text-xs font-medium transition-colors ${
+                    editCategory === c ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {CATEGORY_LABELS[c]}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-500 font-medium">중요도</span>
+            <div className="flex gap-1">
+              {PRIORITIES.map(p => (
+                <button
+                  key={p}
+                  onClick={() => setEditPriority(p)}
+                  className={`px-2 py-0.5 rounded-md text-xs font-medium transition-colors ${
+                    editPriority === p ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {PRIORITY_EMOJI[p]} {PRIORITY_LABELS[p]}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="text-xs text-gray-500 font-medium">마감일</span>
+            <input
+              type="date"
+              value={editDueDate}
+              onChange={e => setEditDueDate(e.target.value)}
+              className="border border-gray-300 rounded-md px-2 py-0.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={handleCancel}
+            className="text-xs px-3 py-1.5 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            취소
+          </button>
+          <button
+            onClick={handleSave}
+            className="text-xs px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+          >
+            저장
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div
@@ -49,13 +151,22 @@ export function TodoItem({ todo, onToggle, onDelete }: TodoItemProps) {
         </div>
       </div>
 
-      <button
-        onClick={() => onDelete(todo.id)}
-        className="text-gray-300 hover:text-red-500 transition-colors flex-shrink-0 text-lg leading-none mt-0.5 opacity-0 group-hover:opacity-100"
-        aria-label="삭제"
-      >
-        ×
-      </button>
+      <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={() => setIsEditing(true)}
+          className="text-gray-400 hover:text-blue-500 transition-colors text-sm p-0.5"
+          aria-label="수정"
+        >
+          ✏️
+        </button>
+        <button
+          onClick={() => onDelete(todo.id)}
+          className="text-gray-300 hover:text-red-500 transition-colors text-lg leading-none"
+          aria-label="삭제"
+        >
+          ×
+        </button>
+      </div>
     </div>
   )
 }

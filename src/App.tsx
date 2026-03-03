@@ -5,6 +5,7 @@ import { Header } from './components/Layout/Header'
 import { FilterBar } from './components/Todo/FilterBar'
 import { TodoInput } from './components/Todo/TodoInput'
 import { TodoList } from './components/Todo/TodoList'
+import { TodoControls } from './components/Todo/TodoControls'
 
 export default function App() {
   const { user, loading: authLoading, signOut } = useAuth()
@@ -31,18 +32,45 @@ function TodoApp({
   email: string
   onSignOut: () => void
 }) {
-  const { todos, filter, setFilter, loading, addTodo, toggleTodo, deleteTodo } = useTodos(userId)
+  const {
+    todos,
+    filter, setFilter,
+    sort, setSort,
+    hideCompleted, setHideCompleted,
+    loading,
+    completedCount,
+    totalCount,
+    addTodo,
+    toggleTodo,
+    updateTodo,
+    deleteTodo,
+    deleteCompleted,
+  } = useTodos(userId)
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header email={email} onSignOut={onSignOut} />
+      <Header
+        email={email}
+        completedCount={completedCount}
+        totalCount={totalCount}
+        onSignOut={onSignOut}
+      />
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-4">
         <TodoInput onAdd={addTodo} />
         <FilterBar current={filter} onChange={setFilter} />
+        <TodoControls
+          sort={sort}
+          onSortChange={setSort}
+          hideCompleted={hideCompleted}
+          onHideCompletedChange={setHideCompleted}
+          completedCount={completedCount}
+          onDeleteCompleted={deleteCompleted}
+        />
         <TodoList
           todos={todos}
           loading={loading}
           onToggle={toggleTodo}
+          onUpdate={updateTodo}
           onDelete={deleteTodo}
         />
       </main>

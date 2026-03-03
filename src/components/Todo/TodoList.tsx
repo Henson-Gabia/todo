@@ -5,10 +5,11 @@ interface TodoListProps {
   todos: Todo[]
   loading: boolean
   onToggle: (id: string, completed: boolean) => void
+  onUpdate: (id: string, updates: Partial<Pick<Todo, 'content' | 'category' | 'priority' | 'due_date'>>) => void
   onDelete: (id: string) => void
 }
 
-export function TodoList({ todos, loading, onToggle, onDelete }: TodoListProps) {
+export function TodoList({ todos, loading, onToggle, onUpdate, onDelete }: TodoListProps) {
   if (loading) {
     return (
       <div className="text-center py-12 text-gray-400 text-sm">불러오는 중...</div>
@@ -31,6 +32,7 @@ export function TodoList({ todos, loading, onToggle, onDelete }: TodoListProps) 
           key={todo.id}
           todo={todo}
           onToggle={onToggle}
+          onUpdate={onUpdate}
           onDelete={onDelete}
         />
       ))}
