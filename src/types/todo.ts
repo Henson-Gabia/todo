@@ -1,7 +1,8 @@
 export type Category = 'personal' | 'work' | 'shopping' | 'other'
 export type Priority = 'high' | 'medium' | 'low'
-export type Filter = 'all' | 'today' | Category
+export type Filter = 'all' | 'today' | 'shared' | Category
 export type Sort = 'created' | 'due_date' | 'priority' | 'manual'
+export type ViewMode = 'list' | 'calendar'
 
 export const SORT_LABELS: Record<Sort, string> = {
   created: '최신순',
@@ -25,6 +26,8 @@ export interface Todo {
   priority: Priority
   due_date: string | null
   position: number | null
+  tags: string[]
+  shared_with_emails: string[]
   created_at: string
 }
 
@@ -33,6 +36,15 @@ export interface NewTodo {
   category: Category
   priority: Priority
   due_date: string | null
+  tags: string[]
+}
+
+export interface Subtask {
+  id: string
+  todo_id: string
+  content: string
+  completed: boolean
+  created_at: string
 }
 
 export const CATEGORY_LABELS: Record<Category, string> = {
@@ -70,6 +82,7 @@ export const PRIORITY_EMOJI: Record<Priority, string> = {
 export const FILTER_LABELS: Record<Filter, string> = {
   all: '전체',
   today: '오늘 마감',
+  shared: '공유됨',
   personal: '개인',
   work: '업무',
   shopping: '쇼핑',

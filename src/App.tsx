@@ -11,6 +11,8 @@ import { TodoList } from './components/Todo/TodoList'
 import { TodoControls } from './components/Todo/TodoControls'
 import { SearchBar } from './components/Todo/SearchBar'
 import { StatsModal } from './components/Stats/StatsModal'
+import { CalendarView } from './components/Calendar/CalendarView'
+import type { ViewMode } from './types/todo'
 
 export default function App() {
   const { user, loading: authLoading, signOut } = useAuth()
@@ -37,38 +39,24 @@ export default function App() {
   )
 }
 
-function TodoApp({
-  userId,
-  email,
-  isDark,
-  onToggleDark,
-  onSignOut,
-}: {
-  userId: string
-  email: string
-  isDark: boolean
-  onToggleDark: () => void
-  onSignOut: () => void
+function TodoApp({ userId, email, isDark, onToggleDark, onSignOut }: {
+  userId: string; email: string; isDark: boolean
+  onToggleDark: () => void; onSignOut: () => void
 }) {
   const [showStats, setShowStats] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
 
   const {
-    todos,
-    allTodos,
+    todos, allTodos,
     filter, setFilter,
     sort, setSort,
     hideCompleted, setHideCompleted,
     search, setSearch,
-    loading,
-    completedCount,
-    totalCount,
-    addTodo,
-    toggleTodo,
-    updateTodo,
-    deleteTodo,
-    deleteCompleted,
-    reorderTodos,
-  } = useTodos(userId)
+    tagFilter, setTagFilter,
+    loading, completedCount, totalCount, allTags,
+    addTodo, toggleTodo, updateTodo, deleteTodo, deleteCompleted,
+    shareTodo, unshareTodo, reorderTodos,
+  } = useTodos(userId, email)
 
   const { requestPermission, permission } = useNotifications(allTodos)
 
@@ -80,38 +68,54 @@ function TodoApp({
         totalCount={totalCount}
         isDark={isDark}
         notificationPermission={permission}
+        viewMode={viewMode}
         onSignOut={onSignOut}
         onToggleDark={onToggleDark}
         onOpenStats={() => setShowStats(true)}
         onRequestNotification={requestPermission}
+        onToggleView={() => setViewMode(v => v === 'list' ? 'calendar' : 'list')}
       />
 
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-4">
-        <TodoInput onAdd={addTodo} />
-        <SearchBar value={search} onChange={setSearch} />
-        <FilterBar current={filter} onChange={setFilter} />
-        <TodoControls
-          sort={sort}
-          onSortChange={setSort}
-          hideCompleted={hideCompleted}
-          onHideCompletedChange={setHideCompleted}
-          completedCount={completedCount}
-          onDeleteCompleted={deleteCompleted}
-        />
-        <TodoList
-          todos={todos}
-          loading={loading}
-          isDraggable={sort === 'manual'}
-          onToggle={toggleTodo}
-          onUpdate={updateTodo}
-          onDelete={deleteTodo}
-          onReorder={reorderTodos}
-        />
+        {viewMode === 'calendar' ? (
+          <CalendarView todos={allTodos} />
+        ) : (
+          <>
+            <TodoInput onAdd={addTodo} />
+            <SearchBar value={search} onChange={setSearch} />
+            <FilterBar
+              current={filter}
+              onChange={setFilter}
+              allTags={allTags}
+              tagFilter={tagFilter}
+              onTagFilter={setTagFilter}
+            />
+            <TodoControls
+              sort={sort}
+              onSortChange={setSort}
+              hideCompleted={hideCompleted}
+              onHideCompletedChange={setHideCompleted}
+              completedCount={completedCount}
+              onDeleteCompleted={deleteCompleted}
+            />
+            <TodoList
+              todos={todos}
+              loading={loading}
+              isDraggable={sort === 'manual'}
+              userId={userId}
+              onToggle={toggleTodo}
+              onUpdate={updateTodo}
+              onDelete={deleteTodo}
+              onShare={shareTodo}
+              onUnshare={unshareTodo}
+              onReorder={reorderTodos}
+              onTagClick={tag => setTagFilter(tagFilter === tag ? null : tag)}
+            />
+          </>
+        )}
       </main>
 
-      {showStats && (
-        <StatsModal todos={allTodos} onClose={() => setShowStats(false)} />
-      )}
+      {showStats && <StatsModal todos={allTodos} onClose={() => setShowStats(false)} />}
     </div>
   )
 }
