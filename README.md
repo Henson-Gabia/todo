@@ -93,6 +93,24 @@ Supabase를 통해 데이터를 저장하고, Vercel로 배포합니다.
 - 브라우저에서 "홈 화면에 추가" 가능
 - 오프라인에서도 기본 동작 지원
 
+### AI 자동 분류 ✨ (유료 API 필요)
+
+> **⚠️ 현재 비활성 상태**: Anthropic API 크레딧이 있어야 동작합니다. 크레딧이 없으면 오류 없이 기능만 스킵됩니다.
+
+- 할일 입력 시 **800ms 후 자동으로 Claude AI가 분석**
+- 카테고리, 중요도, 태그를 자동 추천 (✨ 표시)
+- 사용자가 직접 변경한 항목은 AI가 덮어쓰지 않음
+- API 키 미설정 또는 크레딧 부족 시 기능 자동 비활성화
+
+**활성화 방법:**
+1. [console.anthropic.com](https://console.anthropic.com) → API Keys에서 키 발급
+2. [Plans & Billing](https://console.anthropic.com/settings/billing)에서 크레딧 충전 (최소 $5)
+3. `.env.local`에 키 추가:
+   ```
+   VITE_ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxx
+   ```
+4. Vercel 배포 환경은 Settings → Environment Variables에도 동일하게 추가
+
 ---
 
 ## 시작하기
@@ -164,6 +182,7 @@ create policy "users can manage own subtasks"
 ```
 VITE_SUPABASE_URL=https://xxxxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJxxxxxx...
+VITE_ANTHROPIC_API_KEY=sk-ant-api03-xxxxxxxx   # AI 기능 사용 시 (선택)
 ```
 
 ### 4. 로컬 실행
@@ -178,7 +197,7 @@ npm run dev
 
 1. GitHub 저장소에 push
 2. [vercel.com](https://vercel.com) → New Project → GitHub 저장소 선택
-3. Settings → Environment Variables에 `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` 추가
+3. Settings → Environment Variables에 `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` 추가 (AI 기능 사용 시 `VITE_ANTHROPIC_API_KEY`도 추가)
 4. Deploy → GitHub push마다 자동 재배포
 
 ---
@@ -214,7 +233,8 @@ src/
 │   ├── useSubtasks.ts             # 하위 할일 CRUD
 │   └── useTodos.ts
 ├── lib/
-│   └── supabase.ts
+│   ├── supabase.ts
+│   └── ai.ts                      # AI 자동 분류 (Claude Haiku API)
 └── types/
     └── todo.ts
 ```
